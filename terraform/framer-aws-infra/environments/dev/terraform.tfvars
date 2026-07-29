@@ -31,4 +31,12 @@ primary_security_group_ports = {
     ssh   = 22
     http  = 80
     app   = 3000
-  }
+}
+
+
+launch_template_conf = {
+    image_id = "ami-0aba19e56f3eaec05"
+    instance_type = "t3.micro"
+    key_name = "test1"
+    script_name = "startup.sh"
+}
