@@ -7,43 +7,29 @@ resource "aws_vpc" "framer-pf-vpc" {
   }
 }
 
-resource "aws_subnet" "public1" {
+resource "aws_subnet" "public" {
+
+  for_each = var.public_subnets  
+
   vpc_id     = aws_vpc.framer-pf-vpc.id
-  cidr_block = "10.2.1.0/24"
-  availability_zone = "eu-north-1a"
+  cidr_block = each.value.cidr_block
+  availability_zone = each.value.az
 
   tags = {
-    Name = "framer-pf-public1"
+    Name = "framer-pf-${each.key}"
   }
 }
 
-resource "aws_subnet" "public2" {
+
+resource "aws_subnet" "private" {
+  for_each = var.private_subnets
+
   vpc_id     = aws_vpc.framer-pf-vpc.id
-  cidr_block = "10.2.3.0/24"
-  availability_zone = "eu-north-1b"
+  cidr_block = each.value.cidr_block
+  availability_zone = each.value.az
 
   tags = {
-    Name = "framer-pf-public2"
-  }
-}
-
-resource "aws_subnet" "private1" {
-  vpc_id     = aws_vpc.framer-pf-vpc.id
-  cidr_block = "10.2.5.0/24"
-  availability_zone = "eu-north-1a"
-
-  tags = {
-    Name = "framer-pf-private1"
-  }
-}
-
-resource "aws_subnet" "private2" {
-  vpc_id     = aws_vpc.framer-pf-vpc.id
-  cidr_block = "10.2.7.0/24"
-  availability_zone = "eu-north-1b"
-
-  tags = {
-    Name = "framer-pf-private2"
+    Name = "framer-pf-${each.key}"
   }
 }
 
@@ -77,7 +63,7 @@ resource "aws_eip" "nat-gateway-eip" {
 
 resource "aws_nat_gateway" "nat-gateway" {
   allocation_id = aws_eip.nat-gateway-eip.id
-  subnet_id     = aws_subnet.public1.id
+  subnet_id     = aws_subnet.public["public1"].id
 
   tags = {
     Name = "framer-pf-nat-gateway"
@@ -104,12 +90,9 @@ resource "aws_route_table" "private-rtb" {
 }
 
 resource "aws_route_table_association" "private" {
-  for_each = {
-    subnet1 = aws_subnet.private1.id
-    subnet2 = aws_subnet.private2.id
-  }
+  for_each = aws_subnet.private
 
-  subnet_id      = each.value
+  subnet_id      = each.value.id
   route_table_id = aws_route_table.private-rtb.id
 }
 
@@ -127,12 +110,7 @@ resource "aws_security_group" "framer-sg" {
 
 resource "aws_vpc_security_group_ingress_rule" "ssh" {
   security_group_id = aws_security_group.framer-sg.id
-
-  for_each = {
-    port1 = 80
-    port2 = 3000
-    port3 = 22
-  }
+  for_each = var.primary_security_group_ports
 
   cidr_ipv4   = "0.0.0.0/0"
   ip_protocol = "tcp"
