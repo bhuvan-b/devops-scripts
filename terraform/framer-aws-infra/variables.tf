@@ -32,3 +32,7 @@ variable "primary_security_group_ports" {
     http  = 80
   }
 }
+
+variable "launch_template_conf" {
+  type = map(string)
+}
