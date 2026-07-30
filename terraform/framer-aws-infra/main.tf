@@ -239,7 +239,7 @@ resource "aws_instance" "jump_host" {
   instance_type = var.launch_template_conf.instance_type
   subnet_id = aws_subnet.public["public1"].id
   associate_public_ip_address = true
-  security_groups = [aws_security_group.framer-sg.id]
+  vpc_security_group_ids = [aws_security_group.framer-sg.id]
   key_name = var.launch_template_conf.key_name
 
   tags = {
@@ -252,3 +252,25 @@ output "jump_host_public_ip" {
   value = aws_instance.jump_host.public_ip
 }
 
+// Cloudwatch Related
+
+data "aws_iam_role" "cloudwatch-role" {
+  // Role for CloudWatch permissions - need to attach cloud watch policy
+  // This I already created in console, so just referencing it.
+  name = "instanceRole-temp1"
+}
+
+// This profile will be attached to the launch template
+resource "aws_iam_instance_profile" "ec2_cloudwatch_profile" {
+  name = "ec2-cloudwatch-profile"
+  role = data.aws_iam_role.cloudwatch-role.name
+}
+
+resource "aws_cloudwatch_log_group" "application-logs" {
+  name = "/framer-pf/ec2/application"
+
+  tags = {
+    Environment = "production"
+    Component = "application"
+  }
+}
