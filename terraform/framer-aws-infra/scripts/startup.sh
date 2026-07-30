@@ -1,5 +1,11 @@
 #!/bin/bash
-set -e
+set -euxo pipefail
+
+# Wait until Ubuntu repositories are reachable
+until curl -Is http://archive.ubuntu.com >/dev/null 2>&1; do
+    echo "Waiting for network..."
+    sleep 5
+done
 
 apt update
 apt install -y git nodejs npm
