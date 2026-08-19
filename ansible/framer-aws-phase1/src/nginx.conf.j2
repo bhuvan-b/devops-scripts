@@ -1,0 +1,14 @@
+events {}
+
+http {
+    server {
+        listen {{ http_port }};
+
+        root {{ root_dir }};   
+        index index.html index.htm; 
+
+        location / {
+            try_files $uri $uri/ =404;  
+        }
+    }
+}
