@@ -2,9 +2,9 @@ events {}
 
 http {
     server {
-        listen {{ http_port }};
+        listen {{ nginx_http_port }};
 
-        root {{ root_dir }};   
+        root {{ nginx_root_dir }};   
         index index.html index.htm; 
 
         location / {
