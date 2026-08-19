@@ -1,25 +1,22 @@
-- name: Install Nginx
-  apt:
-    name: nginx
-    state: present
-    update_cache: yes
+    - name: Install Nginx
+      apt:
+        name: nginx
+        state: present
+        update_cache: yes
 
-- name: Start Nginx
-  service:
-    name: nginx
-    state: started
+    - name: Start Nginx
+      service:
+        name: nginx
+        state: started
 
-- name: Copy html file to remote server
-  ansible.builtin.copy:
-    src: /home/bokkabh/av_course/devops-scripts/ansible/framer-aws-phase1/src/framer_site.html
-    dest: /var/www/html/index.html
-    mode: '0644'
+    - name: Copy html file to remote server
+      ansible.builtin.copy:
+        src: src/framer_site.html
+        dest: /var/www/html/index.html
+        mode: '0644'
 
-- name: Update Nginx Config File
-  ansible.builtin.template:
-    src: /home/bokkabh/av_course/devops-scripts/ansible/framer-aws-phase1/src/nginx.conf.j2
-    dest: /etc/nginx/nginx.conf
-  vars:
-    http_port: 3000
-    root_dir: /var/www/html
-  notify: Restart Nginx
+    - name: Update Nginx Config File
+      ansible.builtin.template:
+        src: src/nginx.conf.j2
+        dest: /etc/nginx/nginx.conf
+      notify: Restart Nginx
