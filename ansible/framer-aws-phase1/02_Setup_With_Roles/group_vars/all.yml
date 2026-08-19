@@ -1,0 +1,4 @@
+ansible_root_dir: /home/bokkabh/av_course/devops-scripts/ansible/
+project_path: "{{ ansible_root_dir }}/framer-aws-phase1/02_Setup_With_Roles"
+ansible_ssh_private_key_file: "{{ ansible_root_dir }}/pem_keys/key.pem"
+ansible_user: ubuntu

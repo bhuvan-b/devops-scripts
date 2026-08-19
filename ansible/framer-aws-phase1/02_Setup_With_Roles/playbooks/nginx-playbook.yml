@@ -1,5 +1,5 @@
 - name: nginx-setup
-  hosts: "aws_ec2"
+  hosts: "aws_ec2:&jump_hosts"
   become: true
 
   vars_files:
@@ -19,13 +19,13 @@
 
     - name: Copy html file to remote server
       ansible.builtin.copy:
-        src: /home/bokkabh/av_course/devops-scripts/ansible/framer-aws-phase1/src/framer_site.html
+        src: "{{ project_path }}/src/framer_site.html"
         dest: /var/www/html/index.html
         mode: '0644'
 
     - name: Update Nginx Config File
       ansible.builtin.template:
-        src: /home/bokkabh/av_course/devops-scripts/ansible/framer-aws-phase1/src/nginx.conf.j2
+        src: "{{ project_path }}/src/nginx.conf.j2"
         dest: /etc/nginx/nginx.conf
       vars:
         http_port: 3000
