@@ -1,0 +1,4 @@
+terraform/*/*.tfstate*
+terraform/*/.terraform
+terraform/*/.terraform.lock.*
+ansible/pem_keys/

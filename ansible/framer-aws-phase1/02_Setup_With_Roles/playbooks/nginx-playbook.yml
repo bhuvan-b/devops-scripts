@@ -1,0 +1,19 @@
+- name: nginx-setup
+  hosts: framer_hosts
+  become: true
+
+  vars_files:
+    - ../group_vars/all.yml
+    - ../group_vars/secret.yml
+
+  pre_tasks:
+    - name: Show jump host ansible_host
+      ansible.builtin.debug:
+        msg: "{{ hostvars[groups['jump_hosts'][0]]['ansible_host'] }}"
+
+    - name: Show secret decrypted
+      ansible.builtin.debug:
+        msg: "{{ vault_db_password }}"
+
+  roles:
+    - nginx
