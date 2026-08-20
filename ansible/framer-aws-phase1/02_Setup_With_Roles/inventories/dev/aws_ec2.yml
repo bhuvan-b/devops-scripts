@@ -1,0 +1,23 @@
+plugin: amazon.aws.aws_ec2
+
+profile: "{{ lookup('env', 'AWS_PROFILE') | default('default', true) }}"
+
+regions:
+  - eu-north-1
+
+filters:
+  # tag:Name:
+  #   - framer-pf-jumphost
+
+
+groups:
+  jump_hosts: tags.Name == 'framer-pf-jumphost'
+  private: tags.Environment == "Env-ASG-framer"
+  framer_hosts: >
+    tags.Name == 'framer-pf-jumphost' or
+    tags.Environment == 'Env-ASG-framer'
+
+compose:
+  ansible_host: >
+    public_ip_address if tags.Name == 'framer-pf-jumphost'
+    else private_ip_address

@@ -1,4 +1,4 @@
 ansible_ssh_common_args: >-
   -o StrictHostKeyChecking=no
   -o UserKnownHostsFile=/dev/null
-  -o ProxyCommand="ssh -i /home/bokkabh/av_course/devops-scripts/ansible/pem_keys/key.pem -W %h:%p ubuntu@{{ groups['jump_hosts'][0] }}"
+  -o ProxyCommand="ssh -i /home/bokkabh/av_course/devops-scripts/ansible/pem_keys/key.pem -W %h:%p ubuntu@{{ hostvars[groups['jump_hosts'][0]]['ansible_host'] }}"
