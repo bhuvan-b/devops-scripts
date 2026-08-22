@@ -1,0 +1,28 @@
+pipeline {
+    agent any
+    
+    parameters {
+        string(name: 'SERVER_IP', defaultValue: '13.62.224.162', description: 'Public IP Address of the EC2 instance')
+    }
+    
+    environment {
+        SSH_KEY_ID   = 'jump_host'
+    }
+    
+    stages {
+        stage('SSH Check') {
+            steps {
+                sshagent(credentials: ["${env.SSH_KEY_ID}"], executable: '', usernameVariable: 'USER_NAME') {
+                    echo 'Checking ssh connection to remote server'
+                    // Runs commands over SSH. StrictHostKeyChecking is handled via system known_hosts
+                    sh """
+                        ssh ${USER_NAME}@${params.SERVER_IP} '
+                            uptime -p
+                            free -h
+                        '
+                    """
+                }
+            }
+        }
+    }
+}

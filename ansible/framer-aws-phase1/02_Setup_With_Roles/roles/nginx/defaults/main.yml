@@ -1,2 +1,2 @@
-nginx_http_port: 3000
+nginx_http_port: 4000
 nginx_root_dir: /var/www/html

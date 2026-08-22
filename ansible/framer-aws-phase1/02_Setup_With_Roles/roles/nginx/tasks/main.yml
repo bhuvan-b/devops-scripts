@@ -8,6 +8,7 @@
       service:
         name: nginx
         state: started
+      ignore_errors: true
 
     - name: Copy html file to remote server
       ansible.builtin.copy:

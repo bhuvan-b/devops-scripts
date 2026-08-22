@@ -31,6 +31,7 @@ primary_security_group_ports = {
     ssh   = 22
     http  = 80
     app   = 3000
+    app_v2 = 4000
 }
 
 
