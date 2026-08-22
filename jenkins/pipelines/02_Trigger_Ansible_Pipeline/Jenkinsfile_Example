@@ -1,0 +1,37 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Git Clone') {
+            steps {
+                git branch: 'framer-pf', url: 'https://github.com/bhuvan-b/devops-scripts.git'
+            }
+        }
+        stage('Trigger Ansible Playbook') {
+            steps {
+                withCredentials([
+                    sshUserPrivateKey(
+                        credentialsId: 'jump_host',
+                        keyFileVariable: 'ANSIBLE_PVT_KEY',
+                        usernameVariable: 'ANSIBLE_USER'
+                    )
+                ]) {
+                    dir('ansible/framer-aws-phase1/02_Setup_With_Roles/') {
+                        sh '''
+                            export ANSIBLE_HOST_KEY_CHECKING=False
+                            ansible-playbook \
+                                -i inventories/dev/aws_ec2.yml \
+                                playbooks/nginx-playbook.yml \
+                                --private-key "$ANSIBLE_PVT_KEY"
+                        '''
+                    }
+                }
+            }
+        }
+    }
+    // post {
+    //     always {
+    //         cleanWs()
+    //     }
+    // }
+}

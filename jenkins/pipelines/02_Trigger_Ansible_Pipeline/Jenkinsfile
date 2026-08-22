@@ -1,0 +1,92 @@
+pipeline {
+    agent any
+    
+    parameters {
+        booleanParam(
+            name: 'Refresh_Config',
+            defaultValue: false,
+            description: 'Check this to pull the latest Jenkinsfile and exit safely.'
+        )
+
+        string(
+            name: 'GIT_REPO_URL',
+            defaultValue: 'https://github.com/bhuvan-b/devops-scripts.git',
+            description: 'GIT Repository URL'
+        )
+
+        string(
+            name: 'GIT_BRANCH_NAME',
+            defaultValue: 'framer-pf',
+            description: 'Branch Name of GIT Repository'
+        )
+
+        string(
+            name: 'PROJECT_NAME',
+            defaultValue: 'framer-aws-phase1',
+            description: 'Directory Name at ansible/'
+        )
+
+        string(
+            name: 'SUB_DIRECTORY',
+            defaultValue: '02_Setup_With_Roles',
+            description: 'Directory Name at ansible/project_name/'
+        )
+    }
+
+    stages {
+
+        stage('Config Refresh') {
+            when {
+                expression {
+                    return params.Refresh_Config == true
+                }
+            }
+
+            steps {
+                script {
+                    currentBuild.displayName = "Config Refresh"
+                }
+
+                error("Stopping early. Jenkinsfile configuration has been successfully refreshed!")
+            }
+        }
+
+        stage('Git Clone') {
+            steps {
+                git(
+                    branch: params.GIT_BRANCH_NAME,
+                    url: params.GIT_REPO_URL
+                )
+            }
+        }
+
+        stage('Trigger Ansible Playbook') {
+            steps {
+                withCredentials([
+                    sshUserPrivateKey(
+                        credentialsId: 'jump_host',
+                        keyFileVariable: 'ANSIBLE_PVT_KEY',
+                        usernameVariable: 'ANSIBLE_USER'
+                    )
+                ]) {
+                    dir("ansible/${params.PROJECT_NAME}/${params.SUB_DIRECTORY}") {
+                        sh '''
+                            export ANSIBLE_HOST_KEY_CHECKING=False
+
+                            ansible-playbook \
+                                -i inventories/dev/aws_ec2.yml \
+                                playbooks/nginx-playbook.yml \
+                                --private-key "$ANSIBLE_PVT_KEY"
+                        '''
+                    }
+                }
+            }
+        }
+    }
+
+    // post {
+    //     always {
+    //         cleanWs()
+    //     }
+    // }
+}
