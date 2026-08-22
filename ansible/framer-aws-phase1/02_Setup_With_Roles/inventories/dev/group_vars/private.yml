@@ -1,4 +1,10 @@
+ansible_ssh_private_key_file: "{{ lookup('env', 'ANSIBLE_PVT_KEY') }}"
+
 ansible_ssh_common_args: >-
   -o StrictHostKeyChecking=no
   -o UserKnownHostsFile=/dev/null
-  -o ProxyCommand="ssh -i /home/bokkabh/av_course/devops-scripts/ansible/pem_keys/key.pem -W %h:%p ubuntu@{{ hostvars[groups['jump_hosts'][0]]['ansible_host'] }}"
+  -o ProxyCommand="ssh
+  -o StrictHostKeyChecking=no
+  -o UserKnownHostsFile=/dev/null
+  -o IdentityFile={{ ansible_ssh_private_key_file }}
+  -W %h:%p ubuntu@{{ hostvars[groups['jump_hosts'][0]]['ansible_host'] }}"
