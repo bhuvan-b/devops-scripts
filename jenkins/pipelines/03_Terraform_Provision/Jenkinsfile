@@ -1,0 +1,149 @@
+pipeline {
+    agent any
+
+    parameters {
+        string(
+            name: 'GIT_REPO_URL',
+            defaultValue: 'https://github.com/bhuvan-b/devops-scripts.git',
+            description: 'GIT Repository URL'
+        )
+
+        string(
+            name: 'GIT_BRANCH_NAME',
+            defaultValue: 'framer-pf',
+            description: 'Branch Name of GIT Repository'
+        )
+
+        choice(
+            name: 'ENVIRONMENT',
+            choices: ['dev', 'staging', 'prod'],
+            description: 'Environment to provision'
+        )
+
+        booleanParam(
+            name: 'APPLY',
+            defaultValue: false,
+            description: 'Apply the reviewed Terraform plan'
+        )
+    }
+
+    environment {
+        TF_IN_AUTOMATION = 'true'
+        AWS_REGION       = 'eu-north-1'
+        TF_ROOT          = "terraform/framer-aws-infra-phase1"
+    }
+
+    stages {
+
+        stage('Git Checkout') {
+            steps {
+                git(
+                    branch: params.GIT_BRANCH_NAME,
+                    url: params.GIT_REPO_URL
+                )
+            }
+        }
+
+        stage('Terraform Version') {
+            steps {
+                sh '''
+                    terraform version
+                    aws --version
+                '''
+            }
+        }
+
+        stage('Terraform Init') {
+            steps {
+                dir("${TF_ROOT}") {
+                    sh '''
+                        terraform init -reconfigure -backend-config=environments/${ENVIRONMENT}/backend.hcl -input=false
+                    '''
+                }
+            }
+        }
+
+        stage('Format Check') {
+            steps {
+                dir("${TF_ROOT}") {
+                    sh '''
+                        terraform fmt -check -recursive
+                    '''
+                }
+
+            }
+        }
+
+        stage('Validate') {
+            steps {
+                dir("${TF_ROOT}") {
+                    sh '''
+                        terraform validate
+                    '''
+                }
+            }
+        }
+
+        stage('Terraform Plan') {
+            steps {
+                dir("${TF_ROOT}") {
+                    sh '''
+                        terraform plan \
+                            -input=false \
+                            -var-file=environments/${ENVIRONMENT}/terraform.tfvars \
+                            -out=tfplan
+                    '''
+                }
+            }
+        }
+
+        stage('Approval') {
+            when {
+                expression {
+                    return params.APPLY
+                }
+            }
+
+            steps {
+                timeout(time: 5, unit: 'MINUTES') {
+                    input(
+                        message: "Apply Terraform changes to ${params.ENVIRONMENT}?",
+                        ok: 'Approve Apply'
+                    )
+                }
+            }
+        }
+
+        stage('Terraform Apply') {
+            when {
+                expression {
+                    return params.APPLY
+                }
+            }
+
+            steps {
+                dir("${TF_ROOT}") {
+                    sh '''
+                        terraform apply \
+                            -input=false \
+                            tfplan
+                    '''
+                }
+            }
+        }
+    }
+
+    // post {
+    //     always {
+    //         cleanWs()
+    //     }
+
+    //     success {
+    //         echo "Terraform pipeline completed successfully."
+    //     }
+
+    //     failure {
+    //         echo "Terraform pipeline failed."
+    //     }
+    // }
+}
