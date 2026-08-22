@@ -31,6 +31,12 @@ pipeline {
             defaultValue: '02_Setup_With_Roles',
             description: 'Directory Name at ansible/project_name/'
         )
+
+        choice(
+            name: 'ENVIRONMENT', 
+            choices: ['dev', 'stg', 'prod'], 
+            description: 'Select the target deployment environment.'
+        )
     }
 
     stages {
@@ -74,7 +80,7 @@ pipeline {
                             export ANSIBLE_HOST_KEY_CHECKING=False
 
                             ansible-playbook \
-                                -i inventories/dev/aws_ec2.yml \
+                                -i inventories/${params.ENVIRONMENT}/aws_ec2.yml \
                                 playbooks/nginx-playbook.yml \
                                 --private-key "$ANSIBLE_PVT_KEY"
                         '''
