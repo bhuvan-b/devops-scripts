@@ -80,7 +80,7 @@ pipeline {
                             export ANSIBLE_HOST_KEY_CHECKING=False
 
                             ansible-playbook \
-                                -i inventories/${params.ENVIRONMENT}/aws_ec2.yml \
+                                -i inventories/$ENVIRONMENT/aws_ec2.yml \
                                 playbooks/nginx-playbook.yml \
                                 --private-key "$ANSIBLE_PVT_KEY"
                         '''
